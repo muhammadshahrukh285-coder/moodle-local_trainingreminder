@@ -1,5 +1,11 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+/**
+ * Rules and Steps management for Training Reminder Automation.
+ *
+ * @package    local_trainingreminder
+ * @copyright  2026 Muhammad Shahrukh
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -17,17 +23,17 @@ $campaign = $DB->get_record('local_trainingreminder_camps', ['id' => $campid], '
 $PAGE->set_url(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]));
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('managesteps', 'local_trainingreminder'));
-$PAGE->set_heading($campaign->name . ' - ' . get_string('managesteps', 'local_trainingreminder') . ' (Free Edition)');
+$PAGE->set_heading(s($campaign->name) . ' - ' . get_string('managesteps', 'local_trainingreminder'));
 $PAGE->set_pagelayout('admin');
 
-// Handle Form Submission for Rules
+// Handle Form Submission
 if ($action === 'save' && confirm_sesskey()) {
     
     // HARD LOCK: Prevent POST injection bypass for the 2-rule limit
     if ($stepid == 0) {
         $current_count = $DB->count_records('local_trainingreminder_steps', ['campid' => $campid]);
         if ($current_count >= 2) {
-            redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), 'Free Version Limit: You cannot create more than 2 rules.', null, \core\output\notification::NOTIFY_ERROR);
+            redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), get_string('pro_limit_rules', 'local_trainingreminder'), null, \core\output\notification::NOTIFY_ERROR);
         }
     }
     
@@ -52,14 +58,14 @@ if ($action === 'save' && confirm_sesskey()) {
         $DB->insert_record('local_trainingreminder_steps', $record);
     }
 
-    redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), 'Rule saved successfully!', null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), get_string('savechanges', 'local_trainingreminder'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 // Handle Rule Deletion
 if ($action === 'delete' && $stepid > 0 && confirm_sesskey()) {
     $DB->delete_records('local_trainingreminder_logs', ['stepid' => $stepid]);
     $DB->delete_records('local_trainingreminder_steps', ['id' => $stepid]);
-    redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), 'Rule deleted.', null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect(new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]), get_string('delete', 'local_trainingreminder'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 echo $OUTPUT->header();
@@ -97,7 +103,7 @@ if ($action === 'edit' || $action === 'add') {
         </div>
     </div>
     <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee;">
-        This is an automated message from the Learning & Development team.<br>Please do not reply directly to this email.
+        This is an automated message from the Learning & Development team.
     </div>
 </div>
 </div>';
@@ -108,7 +114,7 @@ if ($action === 'edit' || $action === 'add') {
     $backurl = new moodle_url('/local/trainingreminder/steps.php', ['campid' => $campid]);
 
     echo html_writer::start_tag('div', ['class' => 'container-fluid']);
-    echo html_writer::link($backurl, '&larr; Back to Rules', ['class' => 'btn btn-secondary mb-3']);
+    echo html_writer::link($backurl, get_string('backtorules', 'local_trainingreminder'), ['class' => 'btn btn-secondary mb-3']);
     
     echo html_writer::start_tag('form', ['method' => 'POST', 'action' => $formaction]);
     echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
@@ -116,17 +122,17 @@ if ($action === 'edit' || $action === 'add') {
     echo '<div class="card shadow-sm"><div class="card-body">';
     
     echo '<div class="form-group mb-3">';
-    echo '<label><strong>Step Order</strong> (e.g., 1 for first reminder, 2 for second)</label>';
+    echo '<label><strong>' . get_string('steporder', 'local_trainingreminder') . '</strong></label>';
     echo '<input type="number" class="form-control" name="step_order" value="' . s($step_order) . '" required>';
     echo '</div>';
 
     echo '<div class="form-group mb-3">';
-    echo '<label><strong>Delay</strong> (Days after Enrolment)</label>';
+    echo '<label><strong>' . get_string('delaydays', 'local_trainingreminder') . '</strong></label>';
     echo '<input type="number" class="form-control" name="delay_days" value="' . s($delay_days) . '" required>';
     echo '</div>';
 
     echo '<div class="form-group mb-3">';
-    echo '<label><strong>Email Subject</strong></label>';
+    echo '<label><strong>' . get_string('emailsubject', 'local_trainingreminder') . '</strong></label>';
     echo '<input type="text" class="form-control" name="subject" value="' . s($subject) . '" required>';
     echo '</div>';
 
@@ -147,42 +153,46 @@ if ($action === 'edit' || $action === 'add') {
 // ==========================================
 else {
     $backurl = new moodle_url('/local/trainingreminder/index.php');
-    echo html_writer::link($backurl, '&larr; Back to Campaigns', ['class' => 'btn btn-secondary mb-3 mr-2']);
+    echo html_writer::link($backurl, get_string('backtocampaigns', 'local_trainingreminder'), ['class' => 'btn btn-secondary mb-3 mr-2']);
 
     $total_rules = $DB->count_records('local_trainingreminder_steps', ['campid' => $campid]);
 
-    // --- THE FREE VERSION LOCK LOGIC ---
     if ($total_rules >= 2) {
-        echo '<a href="#" class="btn btn-warning mb-3 font-weight-bold text-dark shadow-sm" onclick="alert(\'FREE VERSION LIMIT REACHED: You are limited to 2 rules per campaign. Upgrade to Training Reminder PRO to build unlimited escalation ladders and infinite loops!\'); return false;">Add New Reminder Rule <span class="badge badge-dark ml-1">PRO</span></a>';
+        echo '<a href="#" class="btn btn-warning mb-3 font-weight-bold text-dark shadow-sm" onclick="alert(\'' . addslashes(get_string('pro_limit_rules', 'local_trainingreminder')) . '\'); return false;">' . get_string('addrule', 'local_trainingreminder') . ' <span class="badge badge-dark ml-1">' . get_string('pro_badge', 'local_trainingreminder') . '</span></a>';
     } else {
         $addurl = new moodle_url('/local/trainingreminder/steps.php', ['action' => 'add', 'campid' => $campid]);
-        echo html_writer::link($addurl, '+ Add New Reminder Rule', ['class' => 'btn btn-primary mb-3 shadow-sm']);
+        echo html_writer::link($addurl, '+ ' . get_string('addrule', 'local_trainingreminder'), ['class' => 'btn btn-primary mb-3 shadow-sm']);
     }
 
     $steps = $DB->get_records('local_trainingreminder_steps', ['campid' => $campid], 'step_order ASC');
 
     $table = new html_table();
     $table->attributes['class'] = 'table table-bordered table-hover bg-white shadow-sm mt-2';
-    $table->head = ['Step Order', 'Trigger Delay', 'Email Subject', 'Actions'];
+    $table->head = [
+        get_string('steporder', 'local_trainingreminder'), 
+        get_string('delaydays', 'local_trainingreminder'), 
+        get_string('emailsubject', 'local_trainingreminder'), 
+        get_string('actions', 'local_trainingreminder')
+    ];
     $table->data = [];
 
     foreach ($steps as $step) {
         $editurl = new moodle_url('/local/trainingreminder/steps.php', ['action' => 'edit', 'campid' => $campid, 'id' => $step->id]);
         $delurl = new moodle_url('/local/trainingreminder/steps.php', ['action' => 'delete', 'campid' => $campid, 'id' => $step->id, 'sesskey' => sesskey()]);
         
-        $actions = html_writer::link($editurl, 'Edit', ['class' => 'btn btn-sm btn-info mr-2']) . ' ' .
-                   html_writer::link($delurl, 'Delete', ['class' => 'btn btn-sm btn-outline-danger', 'onclick' => 'return confirm("Are you sure you want to delete this rule?");']);
+        $actions = html_writer::link($editurl, get_string('edit', 'local_trainingreminder'), ['class' => 'btn btn-sm btn-info mr-2']) . ' ' .
+                   html_writer::link($delurl, get_string('delete', 'local_trainingreminder'), ['class' => 'btn btn-sm btn-outline-danger', 'onclick' => 'return confirm("Are you sure?");']);
 
         $table->data[] = [
             '<strong>Step ' . s($step->step_order) . '</strong>',
-            s($step->delay_days) . ' days after enrol',
+            s($step->delay_days) . ' days',
             s($step->subject),
             $actions
         ];
     }
 
     if (empty($steps)) {
-        echo '<div class="alert alert-info shadow-sm">No reminder rules have been created for this campaign yet.</div>';
+        echo '<div class="alert alert-info shadow-sm">No reminder rules found.</div>';
     } else {
         echo html_writer::table($table);
     }

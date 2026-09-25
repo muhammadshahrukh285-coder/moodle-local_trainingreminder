@@ -1,4 +1,12 @@
 <?php
+/**
+ * Scheduled task to process and send automated training reminders.
+ *
+ * @package    local_trainingreminder
+ * @copyright  2026 Muhammad Shahrukh
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace local_trainingreminder\task;
 defined('MOODLE_INTERNAL') || die();
 
