@@ -1,8 +1,14 @@
-<TABLE NAME="local_trainingreminder" COMMENT="Stores configuration rules for automated course reminders">
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/trainingreminder/db" VERSION="20260928" COMMENT="XMLDB file for Moodle local/trainingreminder"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_trainingreminder" COMMENT="Stores configuration rules for automated course reminders">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="targettype" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="courses" SEQUENCE="false"/>
-        <FIELD NAME="targetids" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="target" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="reminderdays" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="recurring" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for recurring nags, 0 for single reminder"/>
         <FIELD NAME="frequencydays" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Days between recurring reminder loops"/>
@@ -16,3 +22,5 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
+  </TABLES>
+</XMLDB>
