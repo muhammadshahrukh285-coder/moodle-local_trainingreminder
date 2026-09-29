@@ -22,8 +22,6 @@ Designed specifically for corporate, healthcare, and institutional environments,
 
 ## 📸 Visual Proof
 
-*(Note: Replace these placeholder links with actual screenshots of your plugin once uploaded to your repository)*
-
 ### The Executive Dashboard
 <img width="1784" height="738" alt="Reminder 1" src="https://github.com/user-attachments/assets/489c86f1-81a5-4638-bf8d-a2f22a1a2f19" />
 
