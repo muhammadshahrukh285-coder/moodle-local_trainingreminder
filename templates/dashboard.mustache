@@ -9,7 +9,7 @@
     <div class="col-12 col-lg-8"><div class="pr-card"><h4 class="pr-header">{{str.volume}}</h4>{{{chart}}}</div></div>
     <div class="col-12 col-lg-4">
       <div class="pr-card"><h4 class="pr-header">{{str.toprules}}</h4>
-        {{#hastoprules}}{{#toprules}}<div class="pr-progress-wrap"><div class="pr-progress-label"><span class="pr-progress-title">{{subject}}</span><span>{{count}} ({{percent}}%)</span></div><div class="pr-progress"><div class="pr-progress-bar" style="width:{{percent}}%"></div></div></div>{{/toprules}}{{/hastoprules}}
+        {{#hastoprules}}{{#toprules}}<div class="pr-progress-wrap"><div class="pr-progress-label"><span class="pr-progress-title">{{subject}}</span><span>{{count}} ({{percent}}%)</span></div><progress class="pr-progress-native" value="{{percent}}" max="100">{{percent}}%</progress></div>{{/toprules}}{{/hastoprules}}
         {{^hastoprules}}<p class="text-muted">{{str.norules}}</p>{{/hastoprules}}
       </div>
       <div class="pr-card"><h4 class="pr-header">{{str.settings}}</h4>
