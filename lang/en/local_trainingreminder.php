@@ -156,6 +156,9 @@ $string['privacy:metadata:log:status'] = 'Whether the reminder message was succe
 $string['privacy:metadata:manageremail'] = 'A manager email address stored in a user profile field may receive a copy of the reminder, including information about the user and their overdue training.';
 $string['privacy:metadata:coremessage'] = 'The plugin uses Moodle messaging and email delivery services to send reminder notifications to recipients.';
 $string['privacy:exportpath'] = 'Training reminder delivery history';
+$string['privacy:metadata:rule:summary'] = 'Stores the user ID of the user who last modified each reminder rule.';
+$string['privacy:metadata:rule:usermodified'] = 'The user ID of the user who last modified the reminder rule.';
+$string['privacy:ruleexportpath'] = 'Reminder rules modified';
 
 $string['id'] = 'ID';
 $string['invalidtargettype'] = 'Skipping rule {$a}: invalid target type.';
