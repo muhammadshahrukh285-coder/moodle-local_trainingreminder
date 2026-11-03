@@ -1,7 +1,7 @@
 # Training Reminder Automation (`local_trainingreminder`)
 
 [![Moodle CI](https://img.shields.io/badge/Moodle_CI-Passed-success)](#)
-[![Version](https://img.shields.io/badge/Version-1.0.3-blue)](#)
+[![Version](https://img.shields.io/badge/Version-1.0.1-blue)](#)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-green.svg)](#)
 
 An enterprise-grade Moodle notification engine designed to automate compliance follow-ups, reduce administrative overhead, and drive course completion rates. 
