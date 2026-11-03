@@ -1,10 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <https://www.gnu.org/licenses/>.
 /**
- * Page to add, edit, or clone a training reminder rule.
+ * Add, edit, or clone a training reminder rule.
  *
  * @package    local_trainingreminder
  * @copyright  2026 Muhammad Shahrukh
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(__DIR__ . '/../../config.php');
@@ -12,61 +26,42 @@ require_once($CFG->libdir . '/adminlib.php');
 
 $id = optional_param('id', 0, PARAM_INT);
 $clone = optional_param('clone', 0, PARAM_INT);
+$url = new moodle_url('/local/trainingreminder/edit.php', array_filter(['id' => $id, 'clone' => $clone]));
+$context = context_system::instance();
 
-// Set up the page.
-$url = new moodle_url('/local/trainingreminder/edit.php');
-if ($id) {
-    $url->param('id', $id);
-}
-if ($clone) {
-    $url->param('clone', $clone);
-}
+require_login();
+require_capability('local/trainingreminder:manage', $context);
 
 $PAGE->set_url($url);
-$PAGE->set_context(context_system::instance());
+$PAGE->set_context($context);
 $PAGE->set_pagelayout('admin');
-
-// Security checks.
-require_login();
-require_capability('local/trainingreminder:manage', context_system::instance());
-
-// Determine page title.
-$strtitle = get_string('addrule', 'local_trainingreminder');
-if ($id) {
-    $strtitle = get_string('editrule', 'local_trainingreminder');
-}
-
-$PAGE->set_title($strtitle);
+$title = $id ? get_string('editrule', 'local_trainingreminder') : get_string('addrule', 'local_trainingreminder');
+$PAGE->set_title($title);
 $PAGE->set_heading(get_string('pluginname', 'local_trainingreminder'));
 
-// Instantiate the form.
-$customdata = ['id' => $id];
-$mform = new \local_trainingreminder\form\rule_form(null, $customdata);
+$mform = new \local_trainingreminder\form\rule_form(null, ['id' => $id]);
 
-// Handle form cancellation.
 if ($mform->is_cancelled()) {
     redirect(new moodle_url('/local/trainingreminder/manage.php'));
-} 
-// Handle form submission.
-else if ($fromform = $mform->get_data()) {
-    $record = new stdClass();
-    
-    // Safely handle conditionally hidden fields (hideIf) which Moodle omits from POST data
-    $record->targettype = isset($fromform->targettype) ? $fromform->targettype : 'all';
-    $record->target = isset($fromform->target) ? $fromform->target : '';
-    $record->reminderdays = isset($fromform->reminderdays) ? $fromform->reminderdays : 0;
-    $record->recurring = !empty($fromform->recurring) ? 1 : 0;
-    $record->frequencydays = isset($fromform->frequencydays) ? $fromform->frequencydays : 0;
-    $record->subject = isset($fromform->subject) ? $fromform->subject : '';
-
-    // Safely handle the editor array to prevent NULL crashes
-    if (isset($fromform->message)) {
-        $record->message = is_array($fromform->message) ? $fromform->message['text'] : $fromform->message;
-    } else {
-        $record->message = '';
+} else if ($data = $mform->get_data()) {
+    $targetids = [];
+    if ($data->targettype === 'categories') {
+        $targetids = array_map('intval', (array)($data->categoryids ?? []));
+    } else if ($data->targettype === 'courses') {
+        $targetids = array_map('intval', (array)($data->courseids ?? []));
     }
-    
-    $record->timemodified = time();
+    $record = (object)[
+        'targettype' => $data->targettype,
+        'target' => implode(',', array_filter($targetids)),
+        'reminderdays' => max(0, (int)$data->reminderdays),
+        'recurring' => empty($data->recurring) ? 0 : 1,
+        'frequencydays' => empty($data->recurring) ? 0 : max(1, (int)$data->frequencydays),
+        'subject' => clean_param($data->subject, PARAM_TEXT),
+        'message' => $data->message_editor['text'] ?? '',
+        'messageformat' => $data->message_editor['format'] ?? FORMAT_HTML,
+        'timemodified' => time(),
+        'usermodified' => $USER->id,
+    ];
 
     if ($id) {
         $record->id = $id;
@@ -75,30 +70,27 @@ else if ($fromform = $mform->get_data()) {
         $record->timecreated = time();
         $DB->insert_record('local_trainingreminder', $record);
     }
-    
-    redirect(new moodle_url('/local/trainingreminder/manage.php'), 'Rule saved successfully.', null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect(new moodle_url('/local/trainingreminder/manage.php'), get_string('rulesaved', 'local_trainingreminder'),
+        null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
-// Populate the form if we are editing or cloning an existing rule.
 if ($id || $clone) {
-    $loadid = $id ? $id : $clone;
-    $rule = $DB->get_record('local_trainingreminder', ['id' => $loadid], '*', MUST_EXIST);
-    
-    // Prepare the HTML editor format safely
-    $msgtext = isset($rule->message) ? $rule->message : '';
-    $rule->message = ['text' => $msgtext, 'format' => FORMAT_HTML];
-    
-    // If cloning, clear the ID so it saves as a new record, and append a note to the subject.
+    $rule = $DB->get_record('local_trainingreminder', ['id' => $id ?: $clone], '*', MUST_EXIST);
+    $ids = array_values(array_filter(array_map('intval', explode(',', (string)$rule->target))));
+    $rule->categoryids = $rule->targettype === 'categories' ? $ids : [];
+    $rule->courseids = $rule->targettype === 'courses' ? $ids : [];
+    $rule->message_editor = [
+        'text' => $rule->message,
+        'format' => $rule->messageformat ?? FORMAT_HTML,
+    ];
     if ($clone) {
         unset($rule->id);
-        $rule->subject = $rule->subject . ' (Copy)';
+        $rule->subject .= ' (' . get_string('copylabel', 'local_trainingreminder') . ')';
     }
-    
     $mform->set_data($rule);
 }
 
-// Output the page.
 echo $OUTPUT->header();
-echo $OUTPUT->heading($strtitle);
+echo $OUTPUT->heading($title);
 $mform->display();
 echo $OUTPUT->footer();

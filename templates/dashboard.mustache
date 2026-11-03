@@ -1,0 +1,31 @@
+<section class="local-trainingreminder">
+  <div class="row">
+    <div class="col-12 col-sm-6 col-xl-3"><div class="pr-card text-center"><div class="pr-metric">{{totalsent}}</div><div class="pr-metric-label">{{str.totalsent}}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="pr-card text-center"><div class="pr-metric">{{sentthisweek}}</div><div class="pr-metric-label">{{str.last7days}}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="pr-card text-center"><div class="pr-metric">{{successrate}}%</div><div class="pr-metric-label">{{str.deliveryrate}}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="pr-card text-center"><div class="pr-metric">{{totalrules}}</div><div class="pr-metric-label">{{str.activerules}}</div></div></div>
+  </div>
+  <div class="row">
+    <div class="col-12 col-lg-8"><div class="pr-card"><h4 class="pr-header">{{str.volume}}</h4>{{{chart}}}</div></div>
+    <div class="col-12 col-lg-4">
+      <div class="pr-card"><h4 class="pr-header">{{str.toprules}}</h4>
+        {{#hastoprules}}{{#toprules}}<div class="pr-progress-wrap"><div class="pr-progress-label"><span class="pr-progress-title">{{subject}}</span><span>{{count}} ({{percent}}%)</span></div><div class="pr-progress"><div class="pr-progress-bar" style="width:{{percent}}%"></div></div></div>{{/toprules}}{{/hastoprules}}
+        {{^hastoprules}}<p class="text-muted">{{str.norules}}</p>{{/hastoprules}}
+      </div>
+      <div class="pr-card"><h4 class="pr-header">{{str.settings}}</h4>
+        <p><a class="btn btn-outline-primary btn-block" href="{{settingsurl}}">{{str.configure}}</a></p>
+        <form method="post" action="{{testurl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="sendtest" value="1"><button class="btn btn-outline-secondary btn-block" type="submit">{{str.testemail}}</button></form>
+      </div>
+      <div class="pr-card"><h4 class="pr-header">{{str.administration}}</h4>
+        <p><a class="btn btn-primary btn-block" href="{{manageurl}}">{{str.manage}}</a></p>
+        <a class="btn btn-outline-secondary btn-block" href="{{taskurl}}">{{str.tasktiming}}</a>
+      </div>
+    </div>
+  </div>
+  <div class="pr-card"><div class="d-flex justify-content-between align-items-center mb-3"><h4 class="pr-header">{{str.recent}}</h4><a class="btn btn-primary btn-sm" href="{{logsurl}}">{{str.viewlogs}}</a></div>
+    {{#haslogs}}<div class="table-responsive"><table class="table table-sm table-hover"><thead><tr><th>{{str.time}}</th><th>{{str.user}}</th><th>{{str.course}}</th><th>{{str.rule}}</th><th>{{str.status}}</th></tr></thead><tbody>
+      {{#logs}}<tr><td>{{time}}</td><td>{{user}}</td><td>{{course}}</td><td>{{subject}}</td><td>{{status}}</td></tr>{{/logs}}
+    </tbody></table></div>{{/haslogs}}
+    {{^haslogs}}<p class="text-muted">{{str.nologs}}</p>{{/haslogs}}
+  </div>
+</section>

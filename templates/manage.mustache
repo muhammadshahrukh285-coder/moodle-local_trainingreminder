@@ -1,0 +1,29 @@
+<section class="local-trainingreminder">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>{{str.active}}</h3>
+    <div>
+      <a class="btn btn-outline-secondary" href="{{dashboardurl}}">{{str.dashboard}}</a>
+      <a class="btn btn-primary" href="{{addurl}}">{{str.add}}</a>
+    </div>
+  </div>
+  {{#hasrules}}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead><tr><th>{{str.id}}</th><th>{{str.subject}}</th><th>{{str.target}}</th><th>{{str.trigger}}</th><th>{{str.frequency}}</th><th>{{str.actions}}</th></tr></thead>
+      <tbody>
+      {{#rules}}
+        <tr>
+          <td>{{id}}</td><td>{{subject}}</td><td>{{{target}}}</td><td>{{days}}</td><td>{{frequency}}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-primary" href="{{editurl}}">{{str.edit}}</a>
+            <a class="btn btn-sm btn-outline-info" href="{{cloneurl}}">{{str.clone}}</a>
+            <a class="btn btn-sm btn-outline-danger" href="{{deleteurl}}" data-confirm="{{str.confirm}}" onclick="return confirm(this.dataset.confirm)">{{str.delete}}</a>
+          </td>
+        </tr>
+      {{/rules}}
+      </tbody>
+    </table>
+  </div>
+  {{/hasrules}}
+  {{^hasrules}}<p class="alert alert-info">{{str.empty}}</p>{{/hasrules}}
+</section>

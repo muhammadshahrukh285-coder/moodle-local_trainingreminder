@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <https://www.gnu.org/licenses/>.
 /**
  * Scheduled task class for dispatching training reminders.
  *
@@ -28,12 +42,12 @@ class send_reminders extends \core\task\scheduled_task {
     public function execute() {
         global $DB, $CFG;
 
-        mtrace("Starting Training Reminder Automation (Digest Mode with Completion & Recurrence Check)...");
+        mtrace(get_string('taskstarted', 'local_trainingreminder'));
 
         // Fetch all active reminder rules.
         $rules = $DB->get_records('local_trainingreminder');
         if (empty($rules)) {
-            mtrace("No rules configured.");
+            mtrace(get_string('norulesconfigured', 'local_trainingreminder'));
             return;
         }
 
@@ -51,7 +65,7 @@ class send_reminders extends \core\task\scheduled_task {
         }
 
         foreach ($rules as $rule) {
-            mtrace("Processing Rule ID: {$rule->id}");
+            mtrace(get_string('processingrule', 'local_trainingreminder', $rule->id));
 
             $targettime = $now - ($rule->reminderdays * DAYSECS);
             $join = "";
@@ -76,21 +90,26 @@ class send_reminders extends \core\task\scheduled_task {
 
             // 1. Build dynamic SQL for targets.
             if ($rule->targettype === 'courses') {
-                if (empty($rule->targetids)) {
+                $targetids = array_filter(array_map('intval', explode(',', (string)$rule->target)));
+                if (empty($targetids)) {
                     continue;
                 }
-                list($insql, $inparams) = $DB->get_in_or_equal(explode(',', $rule->targetids), SQL_PARAMS_NAMED, 'cid');
+                list($insql, $inparams) = $DB->get_in_or_equal($targetids, SQL_PARAMS_NAMED, 'cid');
                 $where = " AND e.courseid $insql ";
                 $params = array_merge($params, $inparams);
                 
             } elseif ($rule->targettype === 'categories') {
-                if (empty($rule->targetids)) {
+                $targetids = array_filter(array_map('intval', explode(',', (string)$rule->target)));
+                if (empty($targetids)) {
                     continue;
                 }
-                list($insql, $inparams) = $DB->get_in_or_equal(explode(',', $rule->targetids), SQL_PARAMS_NAMED, 'catid');
+                list($insql, $inparams) = $DB->get_in_or_equal($targetids, SQL_PARAMS_NAMED, 'catid');
                 $join = " JOIN {course} c ON c.id = e.courseid ";
                 $where = " AND c.category $insql ";
                 $params = array_merge($params, $inparams);
+            } else if ($rule->targettype !== 'all') {
+                mtrace(get_string('invalidtargettype', 'local_trainingreminder', $rule->id));
+                continue;
             }
 
             // 2. Query enrollments with Completion & Recurrence checks.
@@ -130,7 +149,7 @@ class send_reminders extends \core\task\scheduled_task {
             $enrollments = $DB->get_records_sql($sql, $params);
             
             if (empty($enrollments)) {
-                mtrace("  -> No pending enrollments found for Rule ID {$rule->id}.");
+                mtrace(get_string('nopendingenrolments', 'local_trainingreminder', $rule->id));
                 continue;
             }
 
@@ -200,7 +219,7 @@ class send_reminders extends \core\task\scheduled_task {
                 }
 
                 // Process Message Body placeholders.
-                $message = $rule->message;
+                $message = format_text($rule->message, $rule->messageformat ?? FORMAT_HTML);
                 foreach ($replacements as $search => $replace) {
                     $message = str_replace($search, $replace, $message);
                 }
@@ -313,6 +332,6 @@ class send_reminders extends \core\task\scheduled_task {
             }
         }
 
-        mtrace("Training Reminder Automation completed.");
+        mtrace(get_string('taskcompleted', 'local_trainingreminder'));
     }
 }

@@ -1,0 +1,27 @@
+<section class="local-trainingreminder">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>{{str.history}}</h3><a class="btn btn-outline-secondary" href="{{dashboardurl}}">{{str.dashboard}}</a>
+  </div>
+  <form method="get" action="{{searchurl}}" class="mb-4">
+    <div class="input-group local-trainingreminder-search">
+      <input type="text" name="search" class="form-control" placeholder="{{str.searchplaceholder}}" value="{{search}}">
+      <button class="btn btn-primary" type="submit">{{str.search}}</button>
+      {{#hassearch}}<a class="btn btn-outline-secondary" href="{{searchurl}}">{{str.clear}}</a>{{/hassearch}}
+    </div>
+  </form>
+  <div class="alert alert-info d-flex justify-content-between align-items-center flex-wrap">
+    <span>{{str.auditprompt}}</span>
+    <span><a class="btn btn-primary btn-sm" href="{{csvurl}}">{{str.csv}}</a>
+    <a class="btn btn-success btn-sm" href="{{excelurl}}">{{str.excel}}</a></span>
+  </div>
+  {{#haslogs}}
+  <div class="table-responsive"><table class="table table-striped table-hover table-sm">
+    <thead><tr><th>{{str.time}}</th><th>{{str.recipient}}</th><th>{{str.course}}</th><th>{{str.rule}}</th><th>{{str.status}}</th></tr></thead>
+    <tbody>{{#rows}}<tr><td>{{time}}</td><td>{{recipient}}</td><td>{{course}}</td><td>{{subject}}</td>
+      <td>{{#success}}<span class="badge badge-success">{{status}}</span>{{/success}}{{^success}}<span class="badge badge-danger">{{status}}</span>{{/success}}</td></tr>{{/rows}}</tbody>
+  </table></div>
+  {{#showlimit}}<p class="text-muted small">{{str.limit}}</p>{{/showlimit}}
+  {{#hassearch}}<p class="text-muted small">{{str.filtered}}</p>{{/hassearch}}
+  {{/haslogs}}
+  {{^haslogs}}<p class="alert alert-info">{{#hassearch}}{{str.nomatch}}{{/hassearch}}{{^hassearch}}{{str.empty}}{{/hassearch}}</p>{{/haslogs}}
+</section>

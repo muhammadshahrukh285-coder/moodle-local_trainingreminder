@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <https://www.gnu.org/licenses/>.
 /**
  * English language strings for Training Reminder.
  *
@@ -80,3 +94,69 @@ $string['privacy:metadata:log:summary'] = 'Stores a record of automated training
 $string['privacy:metadata:log:userid'] = 'The ID of the user who received the reminder.';
 $string['privacy:metadata:log:courseid'] = 'The ID of the course they were reminded about.';
 $string['privacy:metadata:log:timesent'] = 'The timestamp when the reminder was dispatched.';
+
+// Administration interface.
+$string['pluginsettings'] = 'Training reminder settings';
+$string['dashboard'] = 'Dashboard';
+$string['auditlogs'] = 'Audit logs';
+$string['managerfield'] = 'Manager email profile field';
+$string['managerfield_desc'] = 'Shortname of the user profile field containing the manager email address. This address may receive a copy of reminder messages.';
+$string['rulesaved'] = 'Reminder rule saved successfully.';
+$string['copylabel'] = 'Copy';
+$string['ruleduplicated'] = 'Reminder rule duplicated successfully.';
+$string['activereminders'] = 'Active reminders';
+$string['createnewrule'] = 'Create new rule';
+$string['triggerday'] = 'Trigger day';
+$string['frequency'] = 'Frequency';
+$string['once'] = 'Once';
+$string['everyxdays'] = 'Every {$a} days';
+$string['clone'] = 'Clone';
+$string['confirmdelete'] = 'Delete this rule and all associated delivery logs?';
+$string['deliveryhistory'] = 'Complete delivery history';
+$string['logsearchplaceholder'] = 'Search by user name, email, course, or rule';
+$string['auditprompt'] = 'Export delivery history for a compliance audit.';
+$string['downloadcsv'] = 'Download CSV';
+$string['downloadexcel'] = 'Download Excel';
+$string['recipient'] = 'Recipient';
+$string['nologsfound'] = 'No audit logs found.';
+$string['nologsmatch'] = 'No logs match your search.';
+$string['loglimit'] = 'Showing the 500 most recent deliveries. Export to download the complete history.';
+$string['logfiltered'] = 'Showing filtered search results. Export to download the complete matching list.';
+$string['logid'] = 'Log ID';
+$string['timesent'] = 'Time sent';
+$string['ruletriggered'] = 'Triggered rule';
+$string['deliverystatus'] = 'Delivery status';
+$string['delivered'] = 'Delivered';
+$string['failed'] = 'Failed';
+$string['totalsent'] = 'Total sent';
+$string['last7days'] = 'Last 7 days';
+$string['deliveryrate'] = 'Delivery rate';
+$string['activerules'] = 'Active rules';
+$string['emailvolume'] = 'Email volume (last 7 days)';
+$string['toprules'] = 'Top rules by volume';
+$string['notriggered'] = 'No rules triggered yet.';
+$string['configure'] = 'Configure settings';
+$string['sendtestemail'] = 'Send test email';
+$string['pluginadministration'] = 'Plugin administration';
+$string['configurerules'] = 'Configure automation rules';
+$string['edittasktiming'] = 'Edit scheduled task timing';
+$string['recentdeliveries'] = 'Recent deliveries (last 5)';
+$string['viewauditlog'] = 'View full audit log and export';
+$string['testemailbody'] = 'Hello {$a}, this is a test preview of your Training Reminder email template.';
+$string['testemailsubject'] = 'Test preview: Training Reminder';
+$string['testemailsent'] = 'Test email sent to {$a}.';
+$string['companylogo'] = 'Company logo';
+$string['taskstarted'] = 'Starting Training Reminder Automation.';
+$string['norulesconfigured'] = 'No reminder rules are configured.';
+$string['processingrule'] = 'Processing reminder rule {$a}.';
+$string['nopendingenrolments'] = 'No pending enrolments found for reminder rule {$a}.';
+$string['taskcompleted'] = 'Training Reminder Automation completed.';
+$string['privacy:metadata:log:reminderid'] = 'The identifier of the reminder rule that generated the delivery.';
+$string['privacy:metadata:log:status'] = 'Whether the reminder message was successfully submitted for delivery.';
+$string['privacy:metadata:manageremail'] = 'A manager email address stored in a user profile field may receive a copy of the reminder, including information about the user and their overdue training.';
+$string['privacy:metadata:coremessage'] = 'The plugin uses Moodle messaging and email delivery services to send reminder notifications to recipients.';
+$string['privacy:exportpath'] = 'Training reminder delivery history';
+
+$string['id'] = 'ID';
+$string['invalidtargettype'] = 'Skipping rule {$a}: invalid target type.';
+$string['reminderssent'] = 'Reminders sent';
