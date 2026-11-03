@@ -294,7 +294,7 @@ class send_reminders extends \core\task\scheduled_task {
                         }
                         
                         $ccsubject = "Escalation CC: " . $subject;
-                        $ccwarning = "<div style='background-color: #fff3cd; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeeba; font-family: sans-serif;'><strong>Manager Escalation CC:</strong> Your direct report <strong>{$user->firstname} {$user->lastname}</strong> is overdue for mandatory training and has received the automated notification below.</div>";
+                        $ccwarning = "<div style='background-color: #fff3cd; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeeba; font-family: sans-serif;'><strong>" . get_string('managerescalationcc', 'local_trainingreminder', fullname($user)) . "</strong></div>";
                         $cchtml = str_replace('<div style="padding: 30px 40px; color: #444444; line-height: 1.6; font-size: 15px;">', '<div style="padding: 30px 40px; color: #444444; line-height: 1.6; font-size: 15px;">' . $ccwarning, $premium_html_message);
                         $cctext = "MANAGER ESCALATION CC: Your direct report {$user->firstname} {$user->lastname} received the following reminder:\n\n" . $messagetext;
                         
