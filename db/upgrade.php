@@ -48,7 +48,7 @@ function xmldb_local_trainingreminder_upgrade($oldversion) {
         }
 
         $logtable = new xmldb_table('local_trainingreminder_logs');
-        $logtable->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, null);
+        $logtable->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, null, true);
         $logtable->add_field('reminderid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'id');
         $logtable->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'reminderid');
         $logtable->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'courseid');
@@ -62,6 +62,26 @@ function xmldb_local_trainingreminder_upgrade($oldversion) {
             $dbman->create_table($logtable);
         }
         upgrade_plugin_savepoint(true, 2026110300, 'local', 'trainingreminder');
+    }
+
+    if ($oldversion < 2026110301) {
+        $ruletable = new xmldb_table('local_trainingreminder');
+        $targetfield = new xmldb_field('target', XMLDB_TYPE_TEXT, null, null, null, null, null, 'targettype');
+        if (!$dbman->field_exists($ruletable, $targetfield)) {
+            $dbman->add_field($ruletable, $targetfield);
+        }
+
+        // Preserve selected course/category IDs when upgrading from versions that used targetids.
+        $legacytargetids = new xmldb_field('targetids');
+        if ($dbman->field_exists($ruletable, $legacytargetids)) {
+            $DB->execute("UPDATE {local_trainingreminder}
+                             SET target = targetids
+                           WHERE (target IS NULL OR target = '')
+                             AND targetids IS NOT NULL
+                             AND targetids <> ''");
+        }
+
+        upgrade_plugin_savepoint(true, 2026110301, 'local', 'trainingreminder');
     }
 
     return true;
