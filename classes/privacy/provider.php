@@ -61,6 +61,8 @@ class provider implements
 
         $collection->add_database_table('local_trainingreminder', [
             'usermodified' => 'privacy:metadata:rule:usermodified',
+            'timecreated' => 'privacy:metadata:rule:timecreated',
+            'timemodified' => 'privacy:metadata:rule:timemodified',
         ], 'privacy:metadata:rule:summary');
 
         $collection->add_external_location_link('manageremail',
