@@ -44,8 +44,24 @@
     height: 8px;
     overflow: hidden;
 }
-.local-trainingreminder .pr-progress-bar {
+.local-trainingreminder .pr-progress-native {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    height: 8px;
+    border: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--bs-secondary-bg, #f3f4f6);
+}
+.local-trainingreminder .pr-progress-native::-webkit-progress-bar {
+    background: var(--bs-secondary-bg, #f3f4f6);
+}
+.local-trainingreminder .pr-progress-native::-webkit-progress-value {
     background: var(--bs-primary, #0f6cbf);
-    height: 100%;
+}
+.local-trainingreminder .pr-progress-native::-moz-progress-bar {
+    background: var(--bs-primary, #0f6cbf);
 }
 .local-trainingreminder-search { max-width: 600px; }
