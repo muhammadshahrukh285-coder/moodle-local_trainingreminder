@@ -31,16 +31,24 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use context;
 use context_course;
+use context_system;
 
 /**
- * Exports and deletes reminder delivery records associated with users.
+ * Exports and deletes reminder delivery records and rule-modification references.
  */
 class provider implements
         \core_privacy\local\metadata\provider,
         \core_privacy\local\request\plugin\provider,
         \core_privacy\local\request\core_userlist_provider {
 
+    /**
+     * Describe the personal data stored by this plugin.
+     *
+     * @param collection $collection The metadata collection.
+     * @return collection
+     */
     public static function get_metadata(collection $collection): collection {
         $collection->add_database_table('local_trainingreminder_logs', [
             'reminderid' => 'privacy:metadata:log:reminderid',
@@ -49,15 +57,28 @@ class provider implements
             'timesent' => 'privacy:metadata:log:timesent',
             'status' => 'privacy:metadata:log:status',
         ], 'privacy:metadata:log:summary');
+
+        $collection->add_database_table('local_trainingreminder', [
+            'usermodified' => 'privacy:metadata:rule:usermodified',
+        ], 'privacy:metadata:rule:summary');
+
         $collection->add_external_location_link('manageremail',
             'privacy:metadata:manageremail');
         $collection->add_subsystem_link('core_message', 'privacy:metadata:coremessage');
         return $collection;
     }
 
+    /**
+     * Find course contexts containing delivery logs and the system context containing rule editor references.
+     *
+     * @param int $userid The user ID.
+     * @return contextlist
+     */
     public static function get_contexts_for_userid(int $userid): contextlist {
         global $DB;
+
         $contextlist = new contextlist();
+
         $courseids = $DB->get_fieldset_select('local_trainingreminder_logs', 'DISTINCT courseid',
             'userid = :userid', ['userid' => $userid]);
         foreach ($courseids as $courseid) {
@@ -65,75 +86,142 @@ class provider implements
                 $contextlist->add_context(context_course::instance((int)$courseid));
             }
         }
+
+        if ($DB->record_exists('local_trainingreminder', ['usermodified' => $userid])) {
+            $contextlist->add_context(context_system::instance());
+        }
+
         return $contextlist;
     }
 
+    /**
+     * Export the user's delivery logs and reminder-rule editor references.
+     *
+     * @param approved_contextlist $contextlist The approved contexts.
+     */
     public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
-        if ($contextlist->get_component() !== 'local_trainingreminder') {
+
+        if ($contextlist->get_component() !== 'local_trainingreminder' || empty($contextlist->count())) {
             return;
         }
+
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if (!$context instanceof context_course) {
-                continue;
-            }
-            $logs = $DB->get_records('local_trainingreminder_logs',
-                ['userid' => $userid, 'courseid' => $context->instanceid], 'timesent ASC');
-            if ($logs) {
-                writer::with_context($context)->export_data(
-                    [get_string('privacy:exportpath', 'local_trainingreminder')],
-                    (object)['deliverylogs' => array_values($logs)]
-                );
+            if ($context instanceof context_course) {
+                $logs = $DB->get_records('local_trainingreminder_logs',
+                    ['userid' => $userid, 'courseid' => $context->instanceid], 'timesent ASC');
+                if ($logs) {
+                    writer::with_context($context)->export_data(
+                        [get_string('privacy:exportpath', 'local_trainingreminder')],
+                        (object)['deliverylogs' => array_values($logs)]
+                    );
+                }
+            } else if ($context instanceof context_system) {
+                $rules = $DB->get_records('local_trainingreminder',
+                    ['usermodified' => $userid], 'id ASC', 'id, timecreated, timemodified');
+                if ($rules) {
+                    $export = [];
+                    foreach ($rules as $rule) {
+                        $export[] = (object)[
+                            'ruleid' => (int)$rule->id,
+                            'timecreated' => transform::datetime($rule->timecreated),
+                            'timemodified' => transform::datetime($rule->timemodified),
+                        ];
+                    }
+                    writer::with_context($context)->export_data(
+                        [get_string('privacy:ruleexportpath', 'local_trainingreminder')],
+                        (object)['modifiedrules' => $export]
+                    );
+                }
             }
         }
     }
 
-    public static function delete_data_for_all_users_in_context(\context $context): void {
+    /**
+     * Delete all plugin personal data in a context.
+     *
+     * @param context $context The context to delete data for.
+     */
+    public static function delete_data_for_all_users_in_context(context $context): void {
         global $DB;
+
         if ($context instanceof context_course) {
             $DB->delete_records('local_trainingreminder_logs', ['courseid' => $context->instanceid]);
+        } else if ($context instanceof context_system) {
+            // Preserve shared rules but remove references to the users who last modified them.
+            $DB->set_field('local_trainingreminder', 'usermodified', 0);
         }
     }
 
+    /**
+     * Delete a user's plugin data in approved contexts.
+     *
+     * @param approved_contextlist $contextlist The approved contexts.
+     */
     public static function delete_data_for_user(approved_contextlist $contextlist): void {
         global $DB;
-        if ($contextlist->get_component() !== 'local_trainingreminder') {
+
+        if ($contextlist->get_component() !== 'local_trainingreminder' || empty($contextlist->count())) {
             return;
         }
+
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
             if ($context instanceof context_course) {
                 $DB->delete_records('local_trainingreminder_logs',
                     ['userid' => $userid, 'courseid' => $context->instanceid]);
+            } else if ($context instanceof context_system) {
+                // Keep operational rules but anonymise the last-modified user reference.
+                $DB->set_field('local_trainingreminder', 'usermodified', 0, ['usermodified' => $userid]);
             }
         }
     }
 
+    /**
+     * Find users with plugin data in the supplied context.
+     *
+     * @param userlist $userlist The user list.
+     */
     public static function get_users_in_context(userlist $userlist): void {
         global $DB;
-        if ($userlist->get_context()->contextlevel !== CONTEXT_COURSE) {
-            return;
+
+        $context = $userlist->get_context();
+        if ($context instanceof context_course) {
+            $userids = $DB->get_fieldset_select('local_trainingreminder_logs', 'DISTINCT userid',
+                'courseid = :courseid', ['courseid' => $context->instanceid]);
+            $userlist->add_users($userids);
+        } else if ($context instanceof context_system) {
+            $userlist->add_from_sql('usermodified',
+                "SELECT usermodified FROM {local_trainingreminder} WHERE usermodified > 0",
+                []);
         }
-        $courseid = $userlist->get_context()->instanceid;
-        $userids = $DB->get_fieldset_select('local_trainingreminder_logs', 'DISTINCT userid',
-            'courseid = :courseid', ['courseid' => $courseid]);
-        $userlist->add_users($userids);
     }
 
+    /**
+     * Delete multiple users' data in one context.
+     *
+     * @param approved_userlist $userlist The approved user list.
+     */
     public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;
 
         $context = $userlist->get_context();
         $userids = $userlist->get_userids();
-
-        if (!$context instanceof context_course || empty($userids)) {
+        if (empty($userids)) {
             return;
         }
 
         [$insql, $params] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
-        $params['courseid'] = $context->instanceid;
-        $DB->delete_records_select('local_trainingreminder_logs',
-            "courseid = :courseid AND userid $insql", $params);
+
+        if ($context instanceof context_course) {
+            $params['courseid'] = $context->instanceid;
+            $DB->delete_records_select('local_trainingreminder_logs',
+                "courseid = :courseid AND userid {$insql}", $params);
+        } else if ($context instanceof context_system) {
+            $DB->execute("UPDATE {local_trainingreminder}
+                             SET usermodified = 0
+                           WHERE usermodified {$insql}", $params);
+        }
     }
 }
