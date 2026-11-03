@@ -158,6 +158,8 @@ $string['privacy:metadata:coremessage'] = 'The plugin uses Moodle messaging and 
 $string['privacy:exportpath'] = 'Training reminder delivery history';
 $string['privacy:metadata:rule:summary'] = 'Stores the user ID of the user who last modified each reminder rule.';
 $string['privacy:metadata:rule:usermodified'] = 'The user ID of the user who last modified the reminder rule.';
+$string['privacy:metadata:rule:timecreated'] = 'The time the reminder rule was created by the user.';
+$string['privacy:metadata:rule:timemodified'] = 'The time the reminder rule was last modified by the user.';
 $string['privacy:ruleexportpath'] = 'Reminder rules modified';
 
 $string['id'] = 'ID';
