@@ -82,16 +82,22 @@ class provider implements
 
         $contextlist = new contextlist();
 
+        // Find course contexts containing this user's delivery logs.
         $courseids = $DB->get_fieldset_select('local_trainingreminder_logs', 'DISTINCT courseid',
-            'userid = :userid', ['userid' => $userid]);
-        foreach ($courseids as $courseid) {
-            if ($courseid && $DB->record_exists('course', ['id' => $courseid])) {
-                $contextlist->add_context(context_course::instance((int)$courseid));
-            }
+            'userid = :userid AND courseid > 0', ['userid' => $userid]);
+        if (!empty($courseids)) {
+            [$insql, $params] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+            $params['contextlevel'] = CONTEXT_COURSE;
+            $sql = "SELECT ctx.id
+                      FROM {context} ctx
+                     WHERE ctx.contextlevel = :contextlevel
+                       AND ctx.instanceid {$insql}";
+            $contextlist->add_from_sql($sql, $params);
         }
 
+        // Rule editor references are stored at system level.
         if ($DB->record_exists('local_trainingreminder', ['usermodified' => $userid])) {
-            $contextlist->add_context(context_system::instance());
+            $contextlist->add_system_context();
         }
 
         return $contextlist;
