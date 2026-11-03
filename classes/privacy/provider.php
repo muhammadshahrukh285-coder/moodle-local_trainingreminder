@@ -121,13 +121,19 @@ class provider implements
         $userlist->add_users($userids);
     }
 
-    public static function delete_data_for_users(\context $context, approved_userlist $userlist): void {
+    public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;
-        if ($context instanceof context_course) {
-            [$insql, $params] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
-            $params['courseid'] = $context->instanceid;
-            $DB->delete_records_select('local_trainingreminder_logs',
-                "courseid = :courseid AND userid $insql", $params);
+
+        $context = $userlist->get_context();
+        $userids = $userlist->get_userids();
+
+        if (!$context instanceof context_course || empty($userids)) {
+            return;
         }
+
+        [$insql, $params] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        $params['courseid'] = $context->instanceid;
+        $DB->delete_records_select('local_trainingreminder_logs',
+            "courseid = :courseid AND userid $insql", $params);
     }
 }
