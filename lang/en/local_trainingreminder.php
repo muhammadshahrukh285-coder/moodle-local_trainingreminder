@@ -165,3 +165,4 @@ $string['privacy:ruleexportpath'] = 'Reminder rules modified';
 $string['id'] = 'ID';
 $string['invalidtargettype'] = 'Skipping rule {$a}: invalid target type.';
 $string['reminderssent'] = 'Reminders sent';
+$string['managerescalationcc'] = 'Manager Escalation CC: Your direct report {$a} is overdue for mandatory training and has received the automated notification below.';
